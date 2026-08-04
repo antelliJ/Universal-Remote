@@ -25,7 +25,8 @@
    aLastState = digitalRead(outputA);   
  } 
 
- void readEncoderSignal() { 
+byte readEncoderSignal() { 
+  byte data = 0;
    aState = digitalRead(outputA); // Reads the "current" state of the outputA
    // If the previous and the current state of the outputA are different, that means a Pulse has occured
    if (aState != aLastState){     
@@ -33,9 +34,11 @@
      if (digitalRead(outputB) != aState) { 
        counter ++;
        scrollUp();
+       data |= 0x01; // 0b00000001
      } else {
        counter --;
        scrollDown();
+       data |= 0x02;
      }
      Serial.print("Position: ");
      Serial.println(counter);
@@ -45,7 +48,10 @@
    if (digitalRead(encoderBtn) == LOW){
      Serial.println("Encoder Button Pressed");
      encoderButtonPressed();
+     data |= 0x04;
    }
+
+   return data;
  }
 
 

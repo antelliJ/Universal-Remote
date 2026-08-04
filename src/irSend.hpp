@@ -48,6 +48,7 @@ void irSendSetup() {
   pinMode(ledCycleBtn, INPUT_PULLUP);
 }
 
+// This uses NEC protocol
 void sendLedSignal(uint64_t data){
   // example power button command
   Serial.print("Sending Signal ");
@@ -58,16 +59,28 @@ void sendLedSignal(uint64_t data){
   delay(1000);
 }
 
-void sendLedPower(){
-  Serial.println("Power button pressed");
-  sendLedSignal(0xFF02FD);
+void sendRawSignal(uint16_t* data, uint16_t hz=38) {
+  irsend.sendRaw(data, sizeof(data) / sizeof(data[0]), hz);
+  delay(30);
 }
+
 
 void sendTVPower(){
   uint16_t rawData[95] = {232, 1860,  228, 806,  184, 854,  180, 854,  180, 882,  136, 900,  136, 1922,  230, 1860,  230, 806,  182, 1906,  230, 808,  180, 856,  180, 882,  138, 1924,  232, 804,  184, 46302,  182, 1906,  228, 808,  184, 854,  178, 856,  184, 882,  136, 1926,  224, 810,  180, 856,  180, 1908,  226, 810,  186, 1902,  228, 1864,  180, 1904,  228, 812,  180, 1908,  226, 44156,  222, 1862,  228, 838,  136, 900,  132, 902,  134, 874,  182, 884,  132, 1930,  222, 1892,  138, 870,  182, 1934,  182, 828,  180, 856,  180, 856,  176, 1912,  180, 856,  180};  // UNKNOWN 5704C7F8
   Serial.print("Sending TV RAW Signal ");
   Serial.println();
-  irsend.sendRaw(rawData, sizeof(rawData) / sizeof(rawData[0]), 38);
-  delay(1000);
+  sendRawSignal(rawData, 38);
 }
 
+
+
+
+
+
+
+
+
+void sendLedPower(){
+  Serial.println("Power button pressed");
+  sendLedSignal(0xFF02FD);
+}
