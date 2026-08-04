@@ -1,0 +1,73 @@
+#include <Arduino.h>
+#include <IRremoteESP8266.h>
+#include <IRsend.h>
+#include <Wire.h>
+
+const uint16_t kIrLed = 14;
+IRsend irsend(kIrLed);
+
+const uint16_t ledPwrBtn = 25;
+const uint16_t ledCycleBtn = 33;
+
+uint64_t mapped_code = 0xFF1AE5; // solid red base
+
+
+// interesting codes:
+// breathing animation thing (voice activated) - FF12ED
+// Sound activation lights smooth - FF32CD
+// gentle fade - FF609F
+// fade a little faster - FFE01F
+// purple - FF7887
+// sound activation lights harsh - FFD827
+// quick flashes then cycles thru breath and stuff? - FFE817
+// slow , turns off fakeout but then quick flashes? - FFC837
+// flash between darkness- FFD02F
+// flash between pure RGB - FF20DF
+// flash btwn colors with >3 colors - FFA05F
+// DIY 1 - FFB04F
+// DIY 2 - FFB04F
+// DIY 3 - FF708F
+// DIY 4 - FF10EF
+// DIY 5 - FF906F
+// DIY 6 - FF50AF
+      // 25 | Red Up             | FF28D7
+      // 26 | Green Up           | FFA857
+      // 27 | Blue Up            | FF6897
+      // 28 | Quick              | FFE817
+      // 29 | Red Dn             | FF08F7
+      // 30 | Green Dn           | FF8877
+      // 31 | Blue Dn            | FF48B7
+
+
+void irSendSetup() {
+  // put your setup code here, to run once:
+  irsend.begin();
+  
+
+  pinMode(ledPwrBtn, INPUT_PULLUP);
+  pinMode(ledCycleBtn, INPUT_PULLUP);
+}
+
+void sendLedSignal(uint64_t data){
+  // example power button command
+  Serial.print("Sending Signal ");
+  Serial.print(data, HEX);
+  Serial.println();
+  // irsend.sendNEC(0xFF02FD, 32);
+  irsend.sendNEC(data);
+  delay(1000);
+}
+
+void sendLedPower(){
+  Serial.println("Power button pressed");
+  sendLedSignal(0xFF02FD);
+}
+
+void sendTVPower(){
+  uint16_t rawData[95] = {232, 1860,  228, 806,  184, 854,  180, 854,  180, 882,  136, 900,  136, 1922,  230, 1860,  230, 806,  182, 1906,  230, 808,  180, 856,  180, 882,  138, 1924,  232, 804,  184, 46302,  182, 1906,  228, 808,  184, 854,  178, 856,  184, 882,  136, 1926,  224, 810,  180, 856,  180, 1908,  226, 810,  186, 1902,  228, 1864,  180, 1904,  228, 812,  180, 1908,  226, 44156,  222, 1862,  228, 838,  136, 900,  132, 902,  134, 874,  182, 884,  132, 1930,  222, 1892,  138, 870,  182, 1934,  182, 828,  180, 856,  180, 856,  176, 1912,  180, 856,  180};  // UNKNOWN 5704C7F8
+  Serial.print("Sending TV RAW Signal ");
+  Serial.println();
+  irsend.sendRaw(rawData, sizeof(rawData) / sizeof(rawData[0]), 38);
+  delay(1000);
+}
+
