@@ -1,0 +1,30 @@
+#include <Arduino.h>
+#include <vector>
+#include <variant>
+
+#include "DeviceProfile.hpp"
+#include "structs.hpp"
+
+struct IRCommand {
+    String name;
+    std::vector<char> data; // same as uint8_t -- storing as a vector in case combos are needed
+    
+    IRCommand(String name, std::vector<char> data){
+        this->name = name;
+        this->data = data;
+    }
+    // if only entering a single char
+    IRCommand(String name, char data){
+        this->name = name;
+        this->data.push_back(data);
+    }
+
+};
+
+class BTDeviceProfile {
+    public:
+    transmissionModes mode = transmissionModes::BT;
+    String name = "BT Device";
+    public:
+    void handleBtnPress(int btnNum){};
+};
