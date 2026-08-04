@@ -9,3 +9,4 @@ class DeviceProfile {
         virtual void handleBtnPress(int btnNum){};
         virtual ~DeviceProfile() = default;
 };
+

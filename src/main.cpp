@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "readEncoder.hpp"
 #include "readRegister.hpp"
+#include "IRDeviceProfile.hpp"
 
 
 

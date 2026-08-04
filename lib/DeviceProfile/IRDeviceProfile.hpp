@@ -3,11 +3,16 @@
 #include <Arduino.h>
 #include "structs.hpp"
 #include "DeviceProfile.hpp"
+// #include <IRremoteESP8266.h>
+// #include <IRsend.h>
+#include "irSend.hpp"
+#include <variant>
 
 // command struct has name, and data
 struct IRCommand {
     String name;
-    uint64_t data;
+    // uint64_t data;
+    std::variant<uint64_t, std::vector> data; // compiles fine? - apparently bug with platformio + vscode intellisense?
 };
 
 
@@ -36,11 +41,29 @@ void handleCommand(IRProtocol protocol, IRCommand command){
     switch (protocol) {
         case IRProtocol::NEC:
             break;
+            
         case IRProtocol::RAW:
-            break;
+            // break;
+            sendRawSignal(command.data)
         case IRProtocol::SONY:
             break;
-        case IRProtocol::UNKNOWN:
+        default: // unknown protocol
             break;
     }
 };
+
+
+// void sendNECdata(IRsend* IRTransmitter, uint64_t data) {
+//     IRTransmitter->sendNEC(data);
+// }
+
+// // I think the code is the same but I forgot
+// void sendSONYdata(IRsend* IRTransmitter, uint64_t data) {
+//     // IRTransmitter->sendSONY(data);
+//     return;
+// }
+
+
+// void sendRAWdata(IRsend* IRTransmitter, uint64_t data) {
+//     IRTransmitter->sendraw
+// }
