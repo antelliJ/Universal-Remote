@@ -12,7 +12,9 @@
 struct IRCommand {
     String name;
     // uint64_t data;
-    std::variant<uint64_t, std::vector> data; // compiles fine? - apparently bug with platformio + vscode intellisense?
+    // std::variant<uint64_t, std::vector<int>> data; // compiles fine? - apparently bug with platformio + vscode intellisense?
+    std::variant<uint64_t, uint16_t*> data;
+    // seems like it doesn't compile fine
 };
 
 
@@ -44,7 +46,11 @@ void handleCommand(IRProtocol protocol, IRCommand command){
             
         case IRProtocol::RAW:
             // break;
-            sendRawSignal(command.data)
+            if (std::holds_alternative<uint16_t*>(command.data)) {
+                
+                uint16_t* data = std::get<uint16_t*>(command.data);
+                sendRawSignal(data);
+            }
         case IRProtocol::SONY:
             break;
         default: // unknown protocol
