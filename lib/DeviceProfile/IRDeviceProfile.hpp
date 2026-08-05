@@ -9,8 +9,9 @@
 #include <variant>
 
 // command struct has name, and data
-struct IRCommand {
-    String name;
+// This is the worst piece of code that I feel like I've ever written but if it works then I'll take it
+struct IRCommand : public command {
+    // String name;
     // uint64_t data;
     // std::variant<uint64_t, std::vector<int>> data; // compiles fine? - apparently bug with platformio + vscode intellisense?
     std::variant<uint64_t, uint16_t*> data;

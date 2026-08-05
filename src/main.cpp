@@ -3,12 +3,17 @@
 #include "readRegister.hpp"
 #include "IRDeviceProfile.hpp"
 
+#include "DeviceProfile.hpp"
 
+uint8_t curProfilePage = 0;
+DeviceProfile* currentProfile = nullptr;
 
 void setup() {
   Serial.begin(115200);
 
 }
+
+
 
 
 

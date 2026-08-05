@@ -1,6 +1,9 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <Arduino.h>
+
+
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -18,7 +21,20 @@ const uint8_t ADDRESS = 0x3C; // 0x3C for 128x64, may be 0x3D?
 
 
 
+
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+int charHeight(int size) {
+    if (size == 1) {
+        return 8;
+    } else {return 16;}
+};
+
+int charWidth(int size) {
+    if (size == 1) {
+        return 6;
+    } else {return 10;}
+};
 
 
 void screenSetup(){
@@ -42,4 +58,15 @@ void drawScreen() {
     display.setCursor(0, 0);
     display.println("Hello, world!");
     display.display();
+}
+
+// align the text of however many entries there are dynamically, 2 per line
+void cursorAlignText(int curEntry) {
+    int potentialEntries = SCREEN_HEIGHT/(charHeight(FONT_SIZE));
+    int curRow = curEntry/(potentialEntries/2);
+    int curCol = (curEntry-1)%2;
+
+    int x = curCol * SCREEN_WIDTH/2;
+    int y = curRow*charHeight(FONT_SIZE);
+    display.setCursor(x, y);
 }

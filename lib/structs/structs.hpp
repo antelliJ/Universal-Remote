@@ -1,8 +1,19 @@
 #pragma once
+#include <variant>
+#include <vector>
 
 enum class transmissionModes {
     IR,
     BT
+};
+
+
+// I don't think this is how I should do this
+// template <typename T>
+struct command {
+    String name;
+    std::variant<uint64_t, uint16_t*, std::vector<char>> data;
+    // T data;
 };
 
 // struct for the state, contains the current state of the device including IR/BT mode, current profile, current and last page of profile, etc
