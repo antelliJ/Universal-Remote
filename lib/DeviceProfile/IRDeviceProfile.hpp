@@ -36,41 +36,9 @@ class IrDeviceProfile : public DeviceProfile {
   
     public:
     void handleBtnPress(int btnNum){};
+
+
+
+
+
 };
-
-
-
-void handleCommand(IRProtocol protocol, IRCommand command){
-    switch (protocol) {
-        case IRProtocol::NEC:
-            break;
-            
-        case IRProtocol::RAW:
-            // break;
-            if (std::holds_alternative<uint16_t*>(command.data)) {
-                
-                uint16_t* data = std::get<uint16_t*>(command.data);
-                sendRawSignal(data);
-            }
-        case IRProtocol::SONY:
-            break;
-        default: // unknown protocol
-            break;
-    }
-};
-
-
-// void sendNECdata(IRsend* IRTransmitter, uint64_t data) {
-//     IRTransmitter->sendNEC(data);
-// }
-
-// // I think the code is the same but I forgot
-// void sendSONYdata(IRsend* IRTransmitter, uint64_t data) {
-//     // IRTransmitter->sendSONY(data);
-//     return;
-// }
-
-
-// void sendRAWdata(IRsend* IRTransmitter, uint64_t data) {
-//     IRTransmitter->sendraw
-// }

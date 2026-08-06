@@ -16,7 +16,8 @@ struct BTCommand : public command{
     // if only entering a single char
     BTCommand(String name, char data){
         this->name = name;
-        this->data.push_back(data);
+        // this->data.push_back(data);
+        this->data = std::vector<char>{data};
     }
 
 };

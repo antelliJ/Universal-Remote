@@ -28,7 +28,7 @@ void checkInputActions(){
   // get encoder signal
 
   // get data of buttons
-  byte data = scanInputs();
+  byte data = scanRegister();
 }
 
 void loop() {

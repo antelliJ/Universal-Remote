@@ -2,6 +2,11 @@
 #include <variant>
 #include <vector>
 
+#include <IRsend.h>
+#include <IRrecv.h>
+#include <Adafruit_SSD1306.h>
+
+
 enum class transmissionModes {
     IR,
     BT
@@ -21,4 +26,11 @@ struct state {
     transmissionModes mode = transmissionModes::IR;
     int currentProfile = 0;
     int currentPage = 0;
+};
+
+// Pointer to special devices and classes (IR receiver and transmitter, screen, etc)
+struct devicePointers {
+    IRrecv* irReceiver = nullptr;
+    IRsend* irTransmitter = nullptr;
+    Adafruit_SSD1306* screen = nullptr;
 };
