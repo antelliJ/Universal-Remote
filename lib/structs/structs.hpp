@@ -26,6 +26,7 @@ struct state {
     transmissionModes mode = transmissionModes::IR;
     int currentProfile = 0;
     int currentPage = 0;
+    bool selectingProfile = false;
 };
 
 // Pointer to special devices and classes (IR receiver and transmitter, screen, etc)

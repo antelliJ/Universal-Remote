@@ -4,6 +4,9 @@
 #include <Arduino.h>
 
 
+#include "structs.hpp"
+
+
 
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
@@ -69,4 +72,15 @@ void cursorAlignText(int curEntry) {
     int x = curCol * SCREEN_WIDTH/2;
     int y = curRow*charHeight(FONT_SIZE);
     display.setCursor(x, y);
+}
+
+void drawCommands(command commands[], int numCommands) {
+    display.setTextSize(FONT_SIZE);
+    display.setTextColor(WHITE);
+    for (int i=0; i<numCommands; i++) {
+        cursorAlignText(i);
+        display.print(commands[i].name);
+    }
+
+    display.display();
 }
