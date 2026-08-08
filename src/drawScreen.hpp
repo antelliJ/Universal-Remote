@@ -5,7 +5,7 @@
 
 
 #include "structs.hpp"
-
+#include "state.hpp"
 
 
 #define SCREEN_WIDTH 128
@@ -26,6 +26,8 @@ const uint8_t ADDRESS = 0x3C; // 0x3C for 128x64, may be 0x3D?
 
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+void drawScreen();
 
 int charHeight(int size) {
     if (size == 1) {
@@ -54,6 +56,39 @@ void screenSetup(){
     drawScreen();
     delay(1000);
 }
+
+// draw a title at the center top of the screen
+void drawTitle(String title) {
+    int16_t x1,y1; // don't rlly care abt these
+    uint16_t w, h;
+    display.getTextBounds(title, 0, 0, &x1, &y1, &w, &h);
+    display.setCursor((SCREEN_WIDTH - w) / 2, 0);
+    display.print(title);
+}
+
+void updateScreen(state currentState) {
+    display.setTextSize(FONT_SIZE);
+    display.setTextColor(WHITE);
+    display.clearDisplay();
+
+    if (currentState.selectingProfile) {
+
+    } else { // profile chosen, for command selection
+        // name of profile at top center of screen
+        String name = currentState.currentProfile->name;
+        drawTitle(name);
+    
+    
+        // commands ordered throughout
+    
+        // buttons displayed if necessary on right
+    
+    
+    
+        // for profile selection
+    }
+}
+
 
 void drawScreen() {
     display.setTextSize(FONT_SIZE);

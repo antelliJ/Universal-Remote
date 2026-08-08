@@ -2,6 +2,7 @@
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
 #include <Wire.h>
+#include "IRDeviceProfile.hpp"
 
 const uint16_t kIrLed = 14;
 IRsend irsend(kIrLed);

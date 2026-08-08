@@ -1,3 +1,4 @@
+#pragma once
 // include vectors
 #include <vector>
 #include <Arduino.h>
@@ -5,7 +6,7 @@
 #include "DeviceProfile.hpp"
 // #include <IRremoteESP8266.h>
 // #include <IRsend.h>
-#include "irSend.hpp"
+// #include "irSend.hpp" // I don't think the profile needs any of the sending logic, that can be done in main
 #include <variant>
 
 // command struct has name, and data
@@ -14,8 +15,12 @@ struct IRCommand : public command {
     // String name;
     // uint64_t data;
     // std::variant<uint64_t, std::vector<int>> data; // compiles fine? - apparently bug with platformio + vscode intellisense?
-    std::variant<uint64_t, uint16_t*> data;
+    std::variant<
+        uint64_t, 
+        std::vector<uint16_t>
+    > data;
     // seems like it doesn't compile fine
+    IRCommand(String name, std::variant<uint64_t, std::vector<uint16_t>> data) : command(name), data(data) {}
 };
 
 
@@ -37,8 +42,11 @@ class IrDeviceProfile : public DeviceProfile {
     public:
     void handleBtnPress(int btnNum){};
 
-
-
+    IrDeviceProfile(String name, IRProtocol protocol, std::vector<IRCommand> commands) {
+        this->name = name;
+        this->protocol = protocol;
+        this->commands = commands;
+    }
 
 
 };

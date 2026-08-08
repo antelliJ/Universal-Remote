@@ -24,5 +24,6 @@ class DeviceProfile {
             }
             return names;
         };
+        std::vector<command> getCommands(){return commands;};
 };
 
