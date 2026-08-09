@@ -21,6 +21,7 @@ struct command {
     command(String name) : name(name) {}
     command(){}
     virtual ~command() = default;
+    const String& getName() const {return name;};
     // T data;
 };
 

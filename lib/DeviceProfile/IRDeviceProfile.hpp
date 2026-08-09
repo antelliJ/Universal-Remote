@@ -20,7 +20,11 @@ struct IRCommand : public command {
         std::vector<uint16_t>
     > data;
     // seems like it doesn't compile fine
-    IRCommand(String name, std::variant<uint64_t, std::vector<uint16_t>> data) : command(name), data(data) {}
+    IRCommand(
+        const String& name, 
+        std::variant<uint64_t, std::vector<uint16_t>> data
+    ) : command(name), data(data) {}
+    String getName(){return name;};
 };
 
 
@@ -34,19 +38,29 @@ enum class IRProtocol {
 
 
 class IrDeviceProfile : public DeviceProfile {
+    public:
     transmissionModes mode = transmissionModes::IR;
     String name = "IR Device";
     IRProtocol protocol = IRProtocol::NEC;
     std::vector<IRCommand> commands;
   
-    public:
     void handleBtnPress(int btnNum){};
+    int getCommandCount(){return commands.size();};
+    std::vector<IRCommand>& getCommands()  {return commands;};
+    command* getCommand(int index){return &commands[index];};
 
-    IrDeviceProfile(String name, IRProtocol protocol, std::vector<IRCommand> commands) {
-        this->name = name;
-        this->protocol = protocol;
-        this->commands = commands;
-    }
 
+    IrDeviceProfile(
+        String name, 
+        IRProtocol protocol, 
+        std::vector<IRCommand> commands
+    ) 
+        : DeviceProfile(name, transmissionModes::IR), 
+        protocol(protocol), commands(std::move(commands)) {}
+    // {
+    //     this->name = name;
+    //     this->protocol = protocol;
+    //     this->commands = commands;
+    // }
 
 };

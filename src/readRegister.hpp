@@ -12,9 +12,9 @@ ABANDON SHIP - the LS uses 5v logic, which is not good for a 3.3v board.
 
 */
 
-int LOAD = 14; // LOAD pin
-int CLOCK = 13; // CLOCK pin
-int DATA = 21; // DATA pin
+int LOAD = 14; // LOAD pin - 14
+int CLOCK = 13; // CLOCK pin - 13
+int DATA = 21; // DATA pin - 21
 
 
 void registerSetup(){

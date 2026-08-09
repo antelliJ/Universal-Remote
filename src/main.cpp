@@ -11,6 +11,12 @@
 
 #include "IRProfilesList.hpp"
 
+// TODO:
+// add bluetooth functionality
+// make all names/cmds scroll if too long
+
+
+
 // uint8_t curProfilePage = 0;
 // DeviceProfile* currentProfile = nullptr;
 
@@ -19,6 +25,7 @@
 state CurrentState;
 
 void loadProfile(DeviceProfile* newProfile); // set currentProfile safely
+void loadCmds();
 void onProfileSelected(); // put into buffer
 void onScroll(bool up); // rotate buffer accordingly - cycle back to first page is exceeds total - do safely
 void toggleProfileSelection();
@@ -29,9 +36,11 @@ void disconnectBLEDevice();
 
 void setup() {
   Serial.begin(115200);
+  Serial.println("Starting...");
 
   // initialize all modules
   screenSetup();
+  Serial.println("Screen initialized");
 
 
 
@@ -39,6 +48,13 @@ void setup() {
   // CurrentState.currentProfile = IRProfiles[0];
   // CurrentState.mode = CurrentState.currentProfile->mode;
   loadProfile(IRProfiles[0]);
+  Serial.println("Profile loaded");
+  Serial.println(CurrentState.currentProfile->name);
+
+
+
+  updateScreen(&CurrentState, false);
+  Serial.println("Updated screen in SETUP");
 }
 
 
@@ -55,7 +71,7 @@ void checkSerialCmd(){
     } else if (data.equalsIgnoreCase("scrolldown")) {
       onScroll(false);
     }
-    }
+  }
 }
 
 void checkInputActions(){
@@ -67,8 +83,15 @@ void checkInputActions(){
 
 void loop() {
   checkSerialCmd();
+  Serial.println("Scanned serial commands");
 
-  checkInputActions();
+  // CURRENT PIN LAYOUT INTERFERES WITH SCREEN I2C
+  // BRING BACK LATER
+  // checkInputActions();
+  
+  updateScreen(&CurrentState);
+  Serial.println("Updated screen");
+
   delay(250);
 }
 
@@ -78,13 +101,27 @@ void loop() {
 // TODO this is temp 
 void onScroll(bool up) {
   Serial.println("Scrolling");
+  if (up) {
+    CurrentState.selectionCursor = (CurrentState.selectionCursor+1)%CurrentState.currentProfile->getCommandCount();
+  } else {
+    CurrentState.selectionCursor = (CurrentState.selectionCursor-1)%CurrentState.currentProfile->getCommandCount();
+  }
+  
+  // check if cursor goes above or below page bounds
+  if (CurrentState.selectionCursor < (CurrentState.currentPage*8)) {
+    CurrentState.currentPage = CurrentState.currentPage-1;
+    loadCmds();
+  } else if (CurrentState.selectionCursor >= ((CurrentState.currentPage+1)*8)) {
+    CurrentState.currentPage = CurrentState.currentPage+1;
+    loadCmds();
+  }
 }
 
 
 // starts at 1
 int pageAmt() {
   int len = CurrentState.currentProfile->getCommandCount();
-  return (len/8)+1;
+  return (len+7)/8;
 }
 
 // loads currentProfile commands into 8 size cmd buffer
@@ -92,10 +129,20 @@ void loadCmds() {
   // for (int i = (CurrentState.currentPage*8); i++; i < (CurrentState.currentPage*8)+8) {
   //   CurrentState.availableCommands[]
   // }
-
+  Serial.print("Command count: ");
+  Serial.println(CurrentState.currentProfile->getCommandCount());
   for (int i = 0; i < 8; i++) {
-    if (i + (CurrentState.currentPage*8) < CurrentState.currentProfile->getCommandCount()) {
-      CurrentState.availableCommands[i] = CurrentState.currentProfile->getCommands()[(CurrentState.currentPage*8)+i];
+
+    int index = i + (CurrentState.currentPage*8);
+    if (index < CurrentState.currentProfile->getCommandCount()) {
+      // CurrentState.availableCommands[i] = &CurrentState.currentProfile->getCommands()[index];
+      CurrentState.availableCommands[i] = CurrentState.currentProfile->getCommand(index);
+      Serial.print("Loaded command ");
+      Serial.println((CurrentState.currentPage*8)+i);
+    } else {
+      Serial.println("Iterating commands out of bounds");
+      // same page but out of bounds
+      CurrentState.availableCommands[i] = nullptr;
     }
   }
 }

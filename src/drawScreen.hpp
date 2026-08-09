@@ -17,8 +17,8 @@
 #define FONT_SIZE 1
 
 // use pins 4 and 5 -- I think these are safe for the c3 board
-#define SDA_PIN 4
-#define SCL_PIN 5
+#define SDA_PIN 14
+#define SCL_PIN 13
 
 const uint8_t ADDRESS = 0x3C; // 0x3C for 128x64, may be 0x3D?
 
@@ -28,6 +28,7 @@ const uint8_t ADDRESS = 0x3C; // 0x3C for 128x64, may be 0x3D?
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 void drawScreen();
+void cursorAlignText(int curEntry);
 
 int charHeight(int size) {
     if (size == 1) {
@@ -52,6 +53,7 @@ void screenSetup(){
             ;
     }
     display.clearDisplay();
+    display.setTextWrap(false); // should make it so things don't overlap
 
     drawScreen();
     delay(1000);
@@ -66,27 +68,69 @@ void drawTitle(String title) {
     display.print(title);
 }
 
-void updateScreen(state currentState) {
+void updateScreen(state* currentState, bool drawSlow=false) {
     display.setTextSize(FONT_SIZE);
     display.setTextColor(WHITE);
     display.clearDisplay();
 
-    if (currentState.selectingProfile) {
+    if (currentState->selectingProfile) { // for profile selection
 
     } else { // profile chosen, for command selection
         // name of profile at top center of screen
-        String name = currentState.currentProfile->name;
+        String name = currentState->currentProfile->name;
         drawTitle(name);
+        if (drawSlow){
+            display.display();
+            delay(1000); // TEMP delay each step
+        }
     
-    
+        Serial.println("now drawing commands");
         // commands ordered throughout
-    
-        // buttons displayed if necessary on right
-    
-    
-    
-        // for profile selection
+        for (int i = 0; i < 8; i++) {
+            if (currentState->availableCommands[i]) {
+                cursorAlignText(i);
+                String cmdName = currentState->availableCommands[i]->getName();
+                display.print(cmdName.substring(0, 10)); //0-10 chars
+                // Calculte name instead
+                // NEED TO DO CHECK TO SEE IF COMMAND EXISTS
+                // String name = currentState->currentProfile->getCommands()[i + currentState->currentPage*8].getName();
+                if (drawSlow){
+                    display.display();
+                    delay(1000); // TEMP delay each step
+                }
+            }
+            // command curCmd = *currentState.availableCommands[i];
+        }
+
+        Serial.println("now drawing arrows");
+        // arrows displayed if necessary on right
+        if (currentState->currentPage > 0) { // draw < arrow
+            // display.setCursor(SCREEN_WIDTH-2*charWidth(FONT_SIZE), 16);
+            display.setCursor(0, SCREEN_HEIGHT-2*charHeight(FONT_SIZE));
+            display.print("<");
+            if (drawSlow){
+                display.display();
+                delay(1000); // TEMP delay each step
+            }
+        }
+        if (currentState->currentPage < currentState->lastPage) { // draw > arrow
+            // display.setCursor(SCREEN_WIDTH-2*charWidth(FONT_SIZE), 32);
+            display.setCursor(SCREEN_WIDTH-2*charWidth(FONT_SIZE), SCREEN_HEIGHT-2*charHeight(FONT_SIZE));
+            display.print(">");
+            if (drawSlow){
+                display.display();
+                delay(1000); // TEMP delay each step
+            }
+        }
+
+        Serial.println("now drawing selection box");
+        // draw selection box
+        cursorAlignText(currentState->selectionCursor % 8);
+        
+        display.drawRect(display.getCursorX(), display.getCursorY(), SCREEN_WIDTH/2, charHeight(FONT_SIZE), WHITE);
     }
+    Serial.println("now displaying screen");
+    display.display();
 }
 
 
@@ -101,11 +145,12 @@ void drawScreen() {
 // align the text of however many entries there are dynamically, 2 per line
 void cursorAlignText(int curEntry) {
     int potentialEntries = SCREEN_HEIGHT/(charHeight(FONT_SIZE));
-    int curRow = curEntry/(potentialEntries/2);
-    int curCol = (curEntry-1)%2;
+    // int curRow = curEntry/(potentialEntries/2); // this is just completely wrong? why did I do that
+    int curRow = (curEntry/2)+1;
+    int curCol = (curEntry)%2;
 
     int x = curCol * SCREEN_WIDTH/2;
-    int y = curRow*charHeight(FONT_SIZE);
+    int y = curRow*(charHeight(FONT_SIZE)+3);
     display.setCursor(x, y);
 }
 

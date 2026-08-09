@@ -7,7 +7,7 @@
 
 struct BTCommand : public command{
     // String name;
-    // std::vector<char> data; // same as uint8_t -- storing as a vector in case combos are needed
+    std::vector<char> data; // same as uint8_t -- storing as a vector in case combos are needed
     
     BTCommand(String name, std::vector<char> data){
         this->name = name;
@@ -27,6 +27,9 @@ class BTDeviceProfile {
     transmissionModes mode = transmissionModes::BT;
     String name = "BT Device";
     std::vector<BTCommand> commands;
+
     public:
     void handleBtnPress(int btnNum){};
+
+    String getName(){return name;};
 };
