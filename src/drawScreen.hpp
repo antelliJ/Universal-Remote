@@ -73,8 +73,12 @@ void updateScreen(state* currentState, bool drawSlow=false) {
     display.setTextColor(WHITE);
     display.clearDisplay();
 
-    if (currentState->selectingProfile) { // for profile selection
-
+    if (currentState->selectingProfile) { // for profile selection]
+        Serial.println("now drawing selection box");
+        // draw selection box
+        cursorAlignText(currentState->selectionCursor % 8);
+        
+        display.drawRect(display.getCursorX(), display.getCursorY(), SCREEN_WIDTH/2, charHeight(FONT_SIZE), WHITE);
     } else { // profile chosen, for command selection
         // name of profile at top center of screen
         String name = currentState->currentProfile->name;
@@ -84,7 +88,6 @@ void updateScreen(state* currentState, bool drawSlow=false) {
             delay(1000); // TEMP delay each step
         }
     
-        Serial.println("now drawing commands");
         // commands ordered throughout
         for (int i = 0; i < 8; i++) {
             if (currentState->availableCommands[i]) {
@@ -94,6 +97,13 @@ void updateScreen(state* currentState, bool drawSlow=false) {
                 // Calculte name instead
                 // NEED TO DO CHECK TO SEE IF COMMAND EXISTS
                 // String name = currentState->currentProfile->getCommands()[i + currentState->currentPage*8].getName();
+                
+                // draw a box to make it look nice? -- nope thats terrible
+                // cursorAlignText(i);
+                // display.drawRect(display.getCursorX()-1, display.getCursorY(), (SCREEN_WIDTH/2)-1, charHeight(FONT_SIZE), WHITE);
+
+
+
                 if (drawSlow){
                     display.display();
                     delay(1000); // TEMP delay each step
@@ -102,7 +112,6 @@ void updateScreen(state* currentState, bool drawSlow=false) {
             // command curCmd = *currentState.availableCommands[i];
         }
 
-        Serial.println("now drawing arrows");
         // arrows displayed if necessary on right
         if (currentState->currentPage > 0) { // draw < arrow
             // display.setCursor(SCREEN_WIDTH-2*charWidth(FONT_SIZE), 16);
@@ -123,13 +132,8 @@ void updateScreen(state* currentState, bool drawSlow=false) {
             }
         }
 
-        Serial.println("now drawing selection box");
-        // draw selection box
-        cursorAlignText(currentState->selectionCursor % 8);
         
-        display.drawRect(display.getCursorX(), display.getCursorY(), SCREEN_WIDTH/2, charHeight(FONT_SIZE), WHITE);
     }
-    Serial.println("now displaying screen");
     display.display();
 }
 

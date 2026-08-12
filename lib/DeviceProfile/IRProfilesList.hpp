@@ -4,7 +4,7 @@
 
 
 // String name, IRProtocol protocol, std::vector<IRCommand> commands
-std::vector<IrDeviceProfile*> IRProfiles = {
+std::vector<DeviceProfile*> IRProfiles = {
     new IrDeviceProfile("lights", IRProtocol::NEC, {// commands
         {"pwr", 0xFF02FD},
         {"purple", 0xFF7887},

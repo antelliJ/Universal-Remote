@@ -35,18 +35,23 @@ void sendSONYdata(uint64_t data) {
 
 
 
-void handleCommand(IRProtocol protocol, IRCommand command){
+void handleIRCommand(IRProtocol protocol, IRCommand command){
+    String signal = "";
+    Serial.print("Sending Signal: ");
     switch (protocol) {
         case IRProtocol::NEC:
             // break;
             sendNECdata(std::get<uint64_t>(command.data));
+            signal = String(std::get<uint64_t>(command.data), HEX);
+            Serial.println(signal);
             
         case IRProtocol::RAW:
             // break;
-            if (std::holds_alternative<uint16_t*>(command.data)) {
+            if (std::holds_alternative<std::vector<uint16_t>>(command.data)) {
                 
-                uint16_t* data = std::get<uint16_t*>(command.data);
-                sendRawSignal(data);
+                std::vector<uint16_t> data = std::get<std::vector<uint16_t>>(command.data);
+                uint16_t* ptr = data.data();
+                sendRawSignal(ptr);
             }
         case IRProtocol::SONY:
             sendSONYdata(std::get<uint64_t>(command.data));
