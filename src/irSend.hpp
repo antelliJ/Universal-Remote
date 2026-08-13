@@ -4,7 +4,7 @@
 #include <Wire.h>
 #include "IRDeviceProfile.hpp"
 
-const uint16_t kIrLed = 14;
+const uint16_t kIrLed = 25; // 14
 IRsend irsend(kIrLed);
 
 

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Arduino.h>
 #include <vector>
 #include <variant>
@@ -5,14 +7,45 @@
 #include "DeviceProfile.hpp"
 #include "structs.hpp"
 
+enum class BTCommandType{
+    KEYBOARD,
+    MEDIA,
+    SETTING
+};
+
+// typedef uint8_t MediaKey[2];
+struct MediaKey{
+    uint8_t data[2];
+};
+
 struct BTCommand : public command{
     // String name;
-    std::vector<char> data; // same as uint8_t -- storing as a vector in case combos are needed
-    bool sync = true; // whether to send the set of keys simultaneously
+    // std::vector<uint8_t> data; // same as uint8_t -- storing as a vector in case combos are needed
+    std::variant<
+        uint8_t,
+        std::vector<uint8_t>,
+        MediaKey
+    > data;
+    BTCommandType type;
+    bool sync_keypress = true; // whether to send the set of keys simultaneously
 
-    BTCommand(const String& name, std::vector<char> data) : command(name), data(data){}
-    // if only entering a single char
-    BTCommand(const String& name, char data) : command(name), data({data}) {}
+    BTCommand(
+        const String& name, 
+        std::vector<uint8_t> data,
+        // BTCommandType type=BTCommandType::KEYBOARD,
+        bool sync_keypress=true) 
+        : command(name), data(std::move(data)), type(BTCommandType::KEYBOARD), sync_keypress(sync_keypress){}
+    
+        // if only entering a single char
+    BTCommand(
+        const String& name, uint8_t data
+        // BTCommandType type=BTCommandType::KEYBOARD,
+    ) : command(name), data(data), type(BTCommandType::KEYBOARD) {}
+    
+    BTCommand(
+        const String& name, MediaKey data
+        // BTCommandType type=BTCommandType::MEDIA
+    ) : command(name), data(std::move(data)), type(BTCommandType::MEDIA) {}
 
     String getName(){return name;};
 

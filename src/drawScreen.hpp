@@ -74,11 +74,26 @@ void updateScreen(state* currentState, bool drawSlow=false) {
     display.clearDisplay();
 
     if (currentState->selectingProfile) { // for profile selection]
-        Serial.println("now drawing selection box");
-        // draw selection box
-        cursorAlignText(currentState->selectionCursor % 8);
+        // Serial.println("now drawing selection box");
+        String title = "IR Profiles";
+        if (currentState->mode==transmissionModes::BT) {
+            title = "BT Profiles";
+        }
+        drawTitle(title);
         
+        // write names of profiles (x2 since only 4, 1 row) 
+        for (int i=0; i< 4; i++) {
+            if (currentState->availableProfiles[i]) {
+                cursorAlignText(i*2);
+                String name = currentState->availableProfiles[i]->name;
+                display.print(name.substring(0, 30));
+            }
+        }
+
+        // draw selection box
+        cursorAlignText(((currentState->selectionCursor)*2) % 8);
         display.drawRect(display.getCursorX(), display.getCursorY(), SCREEN_WIDTH/2, charHeight(FONT_SIZE), WHITE);
+        
     } else { // profile chosen, for command selection
         // name of profile at top center of screen
         String name = currentState->currentProfile->name;
