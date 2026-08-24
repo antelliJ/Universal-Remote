@@ -4,13 +4,19 @@
 #include <Wire.h>
 #include "IRDeviceProfile.hpp"
 
-const uint16_t kIrLed = 25; // 14
+#include "irDump.hpp"
+
+const uint16_t kIrLed = 8; // 14
 IRsend irsend(kIrLed);
+
+bool isInDumpMode = false;
 
 
 void irSendSetup() {
   // put your setup code here, to run once:
   irsend.begin();
+
+  IRRECSetup();
 }
 
 
@@ -39,23 +45,38 @@ void handleIRCommand(IRProtocol protocol, IRCommand command){
     String signal = "";
     Serial.print("Sending Signal: ");
     switch (protocol) {
+        case IRProtocol::SETTINGS:
+            if (command.getName() == "IR Dump"){
+                Serial.println("Dumping IR Code");
+                // IRRECLoop();
+                isInDumpMode = true;
+            }
+            break;
         case IRProtocol::NEC:
-            // break;
-            sendNECdata(std::get<uint64_t>(command.data));
             signal = String(std::get<uint64_t>(command.data), HEX);
+            sendNECdata(std::get<uint64_t>(command.data));
             Serial.println(signal);
+            break;
             
         case IRProtocol::RAW:
-            // break;
             if (std::holds_alternative<std::vector<uint16_t>>(command.data)) {
                 
                 std::vector<uint16_t> data = std::get<std::vector<uint16_t>>(command.data);
                 uint16_t* ptr = data.data();
                 sendRawSignal(ptr);
+
+                for (uint16_t i = 0; i < data.size(); i++) {
+                    Serial.print(data[i]);
+                    Serial.print(" ");
+                }
+                Serial.println();
             }
+            break;
         case IRProtocol::SONY:
             sendSONYdata(std::get<uint64_t>(command.data));
+            break;
         default: // unknown protocol
+            Serial.println("Unknown IR Protocol");
             break;
     }
 };

@@ -12,20 +12,27 @@ ABANDON SHIP - the LS uses 5v logic, which is not good for a 3.3v board.
 
 */
 
-int LOAD = 14; // LOAD pin - 14
-int CLOCK = 13; // CLOCK pin - 13
-int DATA = 21; // DATA pin - 21
+const int LOAD = 6; // LOAD pin - 14
+const int CLOCK = 5; // CLOCK pin - 13
+const int DATA = 7; // DATA pin - 21
 
 
 void registerSetup(){
 
-    pinMode(LOAD, OUTPUT);
-    pinMode(CLOCK, OUTPUT);
-    pinMode(DATA, INPUT);
-    
+    #if USE_SHIFT_REG
 
-    digitalWrite(CLOCK, LOW);
-    digitalWrite(LOAD, HIGH);
+
+        pinMode(LOAD, OUTPUT);
+        pinMode(CLOCK, OUTPUT);
+        pinMode(DATA, INPUT);
+        
+
+        digitalWrite(CLOCK, LOW);
+        digitalWrite(LOAD, HIGH);
+    #else
+        // debug single button mode
+        pinMode(DATA, INPUT_PULLUP);
+    #endif
 }
 
 // const uint16_t inputPins[8] = {14, 12, 13, 15, 27, 26, 25, 33};
@@ -47,14 +54,22 @@ void registerSetup(){
 // }
 
 byte scanRegister() {
-    byte data = 0;
-    digitalWrite(LOAD, LOW);
-    delayMicroseconds(5);
-    digitalWrite(LOAD, HIGH);
-    delayMicroseconds(5);
-    
-    data = shiftIn(DATA, CLOCK, MSBFIRST); // doesn't really matter if MSBFIRST or LSBFIRST since I can update functionality later
-    
-    return data;
+    #if USE_SHIFT_REG
+
+        byte data = 0;
+        digitalWrite(LOAD, LOW);
+        delayMicroseconds(5);
+        digitalWrite(LOAD, HIGH);
+        delayMicroseconds(5);
+        
+        data = shiftIn(DATA, CLOCK, MSBFIRST); // doesn't really matter if MSBFIRST or LSBFIRST since I can update functionality later
+        
+        return data;
+    #else
+
+    // single button mode
+    return (digitalRead(DATA) == LOW) ? 0x01 : 0x00;
+
+    #endif
 }
 

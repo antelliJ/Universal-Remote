@@ -9,7 +9,7 @@
 #include <IRutils.h>
 
 
-const uint16_t kRecvPin = 10;
+const uint16_t kRecvPin = 4;
 
 
 // As this program is a special purpose capture/decoder, let us use a larger

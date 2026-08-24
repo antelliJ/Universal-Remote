@@ -5,10 +5,10 @@
 */
 #include <Arduino.h>
 
-#define outputA 34
-#define outputB 35
+#define outputA 1
+#define outputB 0
 
-#define encoderBtn 32
+#define encoderBtn 3
 
 int counter = 0; 
 int aState;
@@ -20,12 +20,12 @@ void encoderButtonPressed();
 
 
 void encoderSetup(){ 
-  pinMode (outputA,INPUT);
-  pinMode (outputB,INPUT);
+  pinMode (outputA,INPUT_PULLUP);
+  pinMode (outputB,INPUT_PULLUP);
 
   pinMode(encoderBtn, INPUT_PULLUP);
   
-  Serial.begin (9600);
+  // Serial.begin (9600);
   // Reads the initial state of the outputA
   aLastState = digitalRead(outputA);   
 } 
@@ -38,12 +38,20 @@ byte readEncoderSignal() {
     // If the outputB state is different to the outputA state, that means the encoder is rotating clockwise
     if (digitalRead(outputB) != aState) { 
       counter ++;
+      // check if counter is multiple of 2
+      // if so then scroll up
+      // if (counter % 2 == 0){
+      //   scrollUp();
+      //   data |= 0x01; // 0b00000001
+      // }
       scrollUp();
       data |= 0x01; // 0b00000001
     } else {
       counter --;
+      // if (counter % 2 == 0){
       scrollDown();
       data |= 0x02;
+      // }
     }
     Serial.print("Position: ");
     Serial.println(counter);

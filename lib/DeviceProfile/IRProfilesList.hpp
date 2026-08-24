@@ -28,6 +28,11 @@ std::vector<DeviceProfile*> IRProfiles = {
         },
     }),
 
+    new IrDeviceProfile("Settings", IRProtocol::SETTINGS,
+    {
+        {"IR Dump", 0x000000},
+    })
+
     // new IrDeviceProfile(),
     // new IrDeviceProfile(),
     // new IrDeviceProfile()

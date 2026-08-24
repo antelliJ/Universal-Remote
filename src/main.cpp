@@ -1,3 +1,5 @@
+#include "configs.hpp"
+
 #include <Arduino.h>
 #include "readEncoder.hpp"
 #include "readRegister.hpp"
@@ -15,7 +17,10 @@
 #include "AllProfiles.hpp"
 
 #include "irSend.hpp"
+
 #include "btControls.hpp"
+
+#include <functional>
 
 // TODO FEATURES:
 // testing- add bluetooth functionality
@@ -25,8 +30,12 @@
 // find space for IR dump
 // testing- toggleProfileSelection
 
+// maybe make all the buttons into a struct and use a vector of them
+// maybe make the top of the remote top heavy with screen, IR transceiver, ESP, encoder
+//     and bottom with all the buttons
+
 // UNRESOLVED POTENTIAL ISSUES:
-// CurrentState.availableProfiles - THIS IS NOT UPDATED PROPERLY AND WHEN NECESSARY
+// CurrentState.availableProfiles - it is now updated when it is supposed to
 //    - workaround by calculating the global cursor position
 // why does selection cursor go through the entire vector while
 // scrolling profiles and not for commands?
@@ -60,6 +69,10 @@
 
 state CurrentState;
 
+// debounce timeout for shift register (and encoder button)
+int InputRegisterTimeout = 0;
+int screenUpdateTimeout = 0;
+
 // if only there was some special type of file where all these headers could live
 // too bad that doesn't exist
 void loadProfile(DeviceProfile* newProfile); // set currentProfile safely
@@ -78,6 +91,12 @@ void clearProfileList();
 void loadProfileList(std::vector<DeviceProfile*> profiles, int page=0);
 void reloadProfileList();
 void profileListSetup();
+void printByte(byte byteVar) {
+  for (int i=7; i >= 0; i--) {
+    Serial.print(bitRead(byteVar, i));
+  }
+  Serial.println();
+}
 
 void setup() {
   Serial.begin(115200);
@@ -90,6 +109,10 @@ void setup() {
   int bondCount = esp_ble_get_bond_device_num();
 
 
+  encoderSetup();
+  registerSetup(); // why was this not here before ??????????
+  
+
 
   // setup IR profile as the current & load profile
   // CurrentState.currentProfile = IRProfiles[0];
@@ -97,6 +120,8 @@ void setup() {
   // allProfileSetup();
   loadProfile(IRProfiles[0]);
   irSendSetup();
+  
+
   Serial.println("Profile loaded");
   Serial.println(CurrentState.currentProfile->name);
 
@@ -121,12 +146,20 @@ void checkSerialCmd(){
       onScroll(false);
     } else if (data.equalsIgnoreCase("toggle")) {
       toggleProfileSelection();
+      if (isInDumpMode) {
+        isInDumpMode = false;
+      }
     }
     // simulate each of the 8 buttons and their actions
     // in the format of btn<index>
     // ex btn1
     for (int i = 0; i < 8; i++) {
       if (data.equalsIgnoreCase("btn"+String(i))) {
+        if (isInDumpMode) {
+          isInDumpMode = false;
+        }
+
+        
         if (CurrentState.selectingProfile) {
           // toggle between BT and IR profiles
           // while smart, we want logic to occur when switching to BT, and to turn it off for IR
@@ -168,33 +201,118 @@ void checkSerialCmd(){
       Serial.println(CurrentState.selectingProfile);
       Serial.print("Selection Cursor: ");
       Serial.println(CurrentState.selectionCursor);
+      Serial.print("Encoder bitmask: ");
+      Serial.println(readEncoderSignal());
+      Serial.print("Button bitmask: ");
+      Serial.println(scanRegister());
     }
   }
 }
 
 void checkInputActions(){
+  // check if timeout has passed
+  if (!((millis() - InputRegisterTimeout) > DEBOUNCE_DELAY)) {
+    return;
+  } 
+
   // get encoder signal (scroll for every 3~ rotations)
+  byte encoderSignal = readEncoderSignal();
+  uint8_t upPos = 0;
+  uint8_t downPos = 1;
+  uint8_t btnPos = 2;
+  if (encoderSignal & (1 << upPos)) {
+    onScroll(true);
+    // InputRegisterTimeout = millis();
+  } else if (encoderSignal & (1 << downPos)) {
+    onScroll(false);
+    // InputRegisterTimeout = millis();
+  } else if (encoderSignal & (1 << btnPos)) {
+    toggleProfileSelection();
+    InputRegisterTimeout = millis();
+  }
+
 
   // get data of buttons
-  byte data = scanRegister();
+  byte btnData = scanRegister();
+  
+  #if USE_SHIFT_REG
+    for (int i = 0; i < 8; i++) {
+      if (btnData & (1 << i)) {
+        InputRegisterTimeout = millis();
+        if (CurrentState.selectingProfile) {
+          if (CurrentState.mode == transmissionModes::IR) {
+              CurrentState.mode = transmissionModes::BT;
+              setupBT();
+            } else {
+              CurrentState.mode = transmissionModes::IR;
+              disconnectBT();
+            }
+            profileListSetup();
 
-  if (CurrentState.selectingProfile) {
+        } else { // conduct a command
+          Serial.print("button pressed: ");
+          Serial.println(i);
+          conductCommandAction(CurrentState.availableCommands[i]);
+        }
+      }
+    }
+  #else
+    if (btnData) { // in this case it is either 0 or 1
+      InputRegisterTimeout = millis();
+      if (CurrentState.selectingProfile) {
+        if (CurrentState.mode == transmissionModes::IR) {
+            CurrentState.mode = transmissionModes::BT;
+            setupBT();
+          } else {
+            CurrentState.mode = transmissionModes::IR;
+            disconnectBT();
+          }
+          profileListSetup();
 
-  } else {
-    
-  }
+      } else { // conduct a command
+        Serial.print("button pressed: ");
+        Serial.println(CurrentState.selectionCursor);
+        conductCommandAction(CurrentState.availableCommands[CurrentState.selectionCursor]);
+      }
+    }
+
+  #endif
+  
 }
 
 void loop() {
-  checkSerialCmd();
-
-  // CURRENT PIN LAYOUT INTERFERES WITH SCREEN I2C
-  // BRING BACK LATER
-  // checkInputActions();
   
-  updateScreen(&CurrentState);
 
-  delay(250);
+  // DEBUGGING INPUTS
+  checkInputActions();
+
+  // // debug print state of encoder and buttons
+  // byte encoderSignal = readEncoderSignal();
+  // byte btnData = scanRegister();
+  // if (encoderSignal || btnData) {
+  //   Serial.print("Encoder: ");
+  //   // Serial.println(encoderSignal, BIN);
+  //   printByte(encoderSignal);
+  //   Serial.print("Buttons: ");
+  //   // Serial.println(btnData, BIN);
+  //   printByte(btnData);
+  //   delay(1000);
+  // }
+
+
+  if ((millis() - screenUpdateTimeout) > 50) { // 1 / .05 = 20 fps
+    checkSerialCmd();
+    updateScreen(&CurrentState);
+    screenUpdateTimeout = millis();
+  }
+
+  if (isInDumpMode) {
+    IRRECLoop();
+  }
+
+
+
+  delay(50);
 }
 
 
@@ -204,6 +322,44 @@ int profileAmtOnPage(int currentPage){
   // return len/4 if currentPage == lastPage
   // return CurrentState.lastPage == currentPage ? len%4 : 4;
   return (CurrentState.lastPage == currentPage) ?(len - ((pageAmt()-1)*4)) : 4;
+}
+
+int cmdAmtOnPage(int currentPage) {
+  int len = CurrentState.currentProfile->getCommandCount();
+  return (CurrentState.lastPage == currentPage) ? (len - ((pageAmt()-1)*8)) : 8;
+}
+
+int itemAmtOnPage(int currentPage) {
+  if (CurrentState.selectingProfile) {
+    return profileAmtOnPage(currentPage);
+  }
+
+  return cmdAmtOnPage(currentPage);
+}
+
+// func is either loadCmds or reloadProfileList
+void updateScrollingOnPage(bool up, const std::function<void(void)> &func) {
+  if (up) {
+    CurrentState.selectionCursor--;
+    if (CurrentState.selectionCursor < 0) {
+      CurrentState.currentPage = (CurrentState.currentPage - 1)%pageAmt();
+      CurrentState.selectionCursor = itemAmtOnPage(CurrentState.currentPage) - 1;
+      // loadCmds();
+      func();
+    }
+  } else { // scroll down
+    CurrentState.selectionCursor++;
+    if ((CurrentState.selectionCursor >= itemAmtOnPage(CurrentState.currentPage))) {
+      // go to next page (or wrap around)
+      CurrentState.currentPage = (CurrentState.currentPage + 1)%pageAmt();
+      CurrentState.selectionCursor = 0;
+      // loadCmds();
+      func();
+    }
+
+  
+  // CurrentState.selectionCursor = (CurrentState.selectionCursor+1)%profileAmt();
+  }
 }
 
 void reloadProfileList(){
@@ -220,42 +376,27 @@ void onScroll(bool up) {
   Serial.println("Scrolling");
   if (CurrentState.selectingProfile) { // scrolling profiles
 
-    // update the cursor first, if it goes beyond 0/4 entries, increment the currentPage
-    if (up) {
-      CurrentState.selectionCursor--;
-      if (CurrentState.selectionCursor < 0) {
-        CurrentState.currentPage = (CurrentState.currentPage - 1)%pageAmt();
-        CurrentState.selectionCursor = profileAmtOnPage(CurrentState.currentPage) - 1;
-        // set profiles into CurrentState.availableProfiles
-        reloadProfileList();
-      }
-      // CurrentState.selectionCursor = (int(CurrentState.selectionCursor)-1)%profileAmt();
-    } else { // scroll down
-      CurrentState.selectionCursor++;
-      // check if it is on the last page w/ %
-      if ((CurrentState.selectionCursor >= profileAmtOnPage(CurrentState.currentPage))) {
-        // go to next page (or wrap around)
-        CurrentState.currentPage = (CurrentState.currentPage + 1)%pageAmt();
-        CurrentState.selectionCursor = 0;
-        reloadProfileList();
-      }
-
-      
-      // CurrentState.selectionCursor = (CurrentState.selectionCursor+1)%profileAmt();
-    }
-
-
+    updateScrollingOnPage(up, reloadProfileList);
 
   } else { // scrolling commands
-    // check if upcoming page goes above or below page bounds
-    if (up) {
-      // CurrentState.currentPage = (int(CurrentState.currentPage) - 1)%pageAmt();
-      CurrentState.currentPage = (CurrentState.currentPage==0) ? (pageAmt()-1) : (CurrentState.currentPage - 1);
-    } else {
-      // CurrentState.currentPage = (CurrentState.currentPage + 1)%pageAmt();
-      CurrentState.currentPage = (CurrentState.currentPage==pageAmt()-1) ? 0 : (CurrentState.currentPage + 1);
-    }
-    loadCmds();
+
+    #if USE_SHIFT_REG
+
+      // check if upcoming page goes above or below page bounds
+      if (up) {
+        // CurrentState.currentPage = (int(CurrentState.currentPage) - 1)%pageAmt();
+        CurrentState.currentPage = (CurrentState.currentPage==0) ? (pageAmt()-1) : (CurrentState.currentPage - 1);
+      } else {
+        // CurrentState.currentPage = (CurrentState.currentPage + 1)%pageAmt();
+        CurrentState.currentPage = (CurrentState.currentPage==pageAmt()-1) ? 0 : (CurrentState.currentPage + 1);
+      }
+      loadCmds();
+    #else
+      // increase selectionCursor, wrap around that and current page if necessary
+      updateScrollingOnPage(up, loadCmds);
+
+    #endif
+    
   }
   
 }
@@ -359,6 +500,7 @@ void profileListSetup(){
 void toggleProfileSelection() {
   CurrentState.selectingProfile = !CurrentState.selectingProfile;
   CurrentState.currentPage = 0;
+  CurrentState.selectionCursor = 0;
   if (CurrentState.selectingProfile) {
     profileListSetup();
 

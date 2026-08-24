@@ -7,6 +7,10 @@ const uint8_t K_L_CTRL = 0x80;
 const uint8_t K_L_SHIFT = 0x81;
 const uint8_t K_L_ALT = 0x82;
 const uint8_t K_RETURN = 0xB0;
+const uint8_t K_UP = 0xDA;
+const uint8_t K_DOWN = 0xD9;
+const uint8_t K_LEFT = 0xD8;
+const uint8_t K_RIGHT = 0xD7;
 const uint8_t K_F1 = 0xC2;
 const uint8_t K_F2 = 0xC3;
 const uint8_t K_F3 = 0xC4;
@@ -63,6 +67,14 @@ std::vector<DeviceProfile*> BTProfiles = {
     new BTDeviceProfile(
         "Settings", {
             {"Reconnect", 0}
+        }
+    ),
+    new BTDeviceProfile(
+        "TikTok", { 
+            // up down, play
+            {"up", K_UP},
+            {"down", K_DOWN},
+            {"play", MEDIAKEY_PLAY_PAUSE},
         }
     )
 };

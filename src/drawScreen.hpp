@@ -17,8 +17,8 @@
 #define FONT_SIZE 1
 
 // use pins 4 and 5 -- I think these are safe for the c3 board
-#define SDA_PIN 14
-#define SCL_PIN 13
+#define SDA_PIN 20
+#define SCL_PIN 21
 
 const uint8_t ADDRESS = 0x3C; // 0x3C for 128x64, may be 0x3D?
 
@@ -146,6 +146,18 @@ void updateScreen(state* currentState, bool drawSlow=false) {
                 delay(1000); // TEMP delay each step
             }
         }
+
+        #if !(USE_SHIFT_REG)
+        // draw a selection around the selected command
+            Serial.println("drawing selection box");
+            cursorAlignText(currentState->selectionCursor % 8); // should already be wrapped around 8, but just in case
+            display.drawRect(display.getCursorX(), display.getCursorY(), SCREEN_WIDTH/2, charHeight(FONT_SIZE), WHITE);
+            if (drawSlow){
+                display.display();
+                delay(1000); // TEMP delay each step
+            }
+        #endif
+
 
         
     }
