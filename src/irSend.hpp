@@ -21,8 +21,13 @@ void irSendSetup() {
 
 
 
-void sendRawSignal(uint16_t* data, uint16_t hz=38) {
-  irsend.sendRaw(data, sizeof(data) / sizeof(data[0]), hz);
+// void sendRawSignal(uint16_t* data, uint16_t hz=38) {
+//   irsend.sendRaw(data, sizeof(data) / sizeof(data[0]), hz);
+//   delay(30);
+// }
+
+void sendRawSignal(const std::vector<uint16_t>& data, uint16_t hz=38) {
+  irsend.sendRaw(data.data(), data.size(), hz);
   delay(30);
 }
 
@@ -37,6 +42,9 @@ void sendSONYdata(uint64_t data) {
     irsend.sendSony(data);
 }
 
+void sendRC5data(uint64_t data) {
+    irsend.sendRC5(data);
+}
 
 
 
@@ -61,9 +69,12 @@ void handleIRCommand(IRProtocol protocol, IRCommand command){
         case IRProtocol::RAW:
             if (std::holds_alternative<std::vector<uint16_t>>(command.data)) {
                 
-                std::vector<uint16_t> data = std::get<std::vector<uint16_t>>(command.data);
-                uint16_t* ptr = data.data();
-                sendRawSignal(ptr);
+                // std::vector<uint16_t> data = std::get<std::vector<uint16_t>>(command.data);
+                // uint16_t* ptr = data.data();
+                // sendRawSignal(ptr);
+
+                const std::vector<uint16_t>& data = std::get<std::vector<uint16_t>>(command.data);
+                sendRawSignal(data);
 
                 for (uint16_t i = 0; i < data.size(); i++) {
                     Serial.print(data[i]);
@@ -74,6 +85,11 @@ void handleIRCommand(IRProtocol protocol, IRCommand command){
             break;
         case IRProtocol::SONY:
             sendSONYdata(std::get<uint64_t>(command.data));
+            Serial.println(std::get<uint64_t>(command.data));
+            break;
+        case IRProtocol::RC5:
+            sendRC5data(std::get<uint64_t>(command.data));
+            Serial.println(std::get<uint64_t>(command.data));
             break;
         default: // unknown protocol
             Serial.println("Unknown IR Protocol");

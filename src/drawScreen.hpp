@@ -149,7 +149,7 @@ void updateScreen(state* currentState, bool drawSlow=false) {
 
         #if !(USE_SHIFT_REG)
         // draw a selection around the selected command
-            Serial.println("drawing selection box");
+            // Serial.println("drawing selection box");
             cursorAlignText(currentState->selectionCursor % 8); // should already be wrapped around 8, but just in case
             display.drawRect(display.getCursorX(), display.getCursorY(), SCREEN_WIDTH/2, charHeight(FONT_SIZE), WHITE);
             if (drawSlow){

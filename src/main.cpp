@@ -217,18 +217,19 @@ void checkInputActions(){
 
   // get encoder signal (scroll for every 3~ rotations)
   byte encoderSignal = readEncoderSignal();
-  uint8_t upPos = 0;
-  uint8_t downPos = 1;
-  uint8_t btnPos = 2;
-  if (encoderSignal & (1 << upPos)) {
-    onScroll(true);
-    // InputRegisterTimeout = millis();
-  } else if (encoderSignal & (1 << downPos)) {
-    onScroll(false);
-    // InputRegisterTimeout = millis();
-  } else if (encoderSignal & (1 << btnPos)) {
-    toggleProfileSelection();
-    InputRegisterTimeout = millis();
+  if (encoderSignal){
+    if (encoderSignal & ENCODER_SCROLLUP) {
+      onScroll(true);
+      // InputRegisterTimeout = millis();
+    } 
+    if (encoderSignal & ENCODER_SCROLLDOWN) {
+      onScroll(false);
+      // InputRegisterTimeout = millis();
+    } 
+    if (encoderSignal & ENCODER_BTN) {
+      toggleProfileSelection();
+      InputRegisterTimeout = millis();
+    }
   }
 
 
@@ -286,6 +287,16 @@ void loop() {
   // DEBUGGING INPUTS
   checkInputActions();
 
+  // static uint8_t last = 255;
+  // uint8_t state = 
+  //   (digitalRead(outputA) << 1) | 
+  //   digitalRead(outputB);
+
+  // if (state != last) {
+  //   Serial.println(state, BIN);
+  //   last = state;
+  // }
+
   // // debug print state of encoder and buttons
   // byte encoderSignal = readEncoderSignal();
   // byte btnData = scanRegister();
@@ -300,7 +311,7 @@ void loop() {
   // }
 
 
-  if ((millis() - screenUpdateTimeout) > 50) { // 1 / .05 = 20 fps
+  if ((millis() - screenUpdateTimeout) > 50) { // 1 / .05 = 20 fps -- doing 16 would be ~60 fps
     checkSerialCmd();
     updateScreen(&CurrentState);
     screenUpdateTimeout = millis();
@@ -342,7 +353,8 @@ void updateScrollingOnPage(bool up, const std::function<void(void)> &func) {
   if (up) {
     CurrentState.selectionCursor--;
     if (CurrentState.selectionCursor < 0) {
-      CurrentState.currentPage = (CurrentState.currentPage - 1)%pageAmt();
+      // CurrentState.currentPage = (CurrentState.currentPage - 1)%pageAmt();
+      CurrentState.currentPage = (CurrentState.currentPage==0) ? (pageAmt()-1) : (CurrentState.currentPage - 1);
       CurrentState.selectionCursor = itemAmtOnPage(CurrentState.currentPage) - 1;
       // loadCmds();
       func();
@@ -351,7 +363,8 @@ void updateScrollingOnPage(bool up, const std::function<void(void)> &func) {
     CurrentState.selectionCursor++;
     if ((CurrentState.selectionCursor >= itemAmtOnPage(CurrentState.currentPage))) {
       // go to next page (or wrap around)
-      CurrentState.currentPage = (CurrentState.currentPage + 1)%pageAmt();
+      // CurrentState.currentPage = (CurrentState.currentPage + 1)%pageAmt();
+      CurrentState.currentPage = (CurrentState.currentPage==pageAmt()-1) ? 0 : (CurrentState.currentPage + 1);
       CurrentState.selectionCursor = 0;
       // loadCmds();
       func();
@@ -500,7 +513,7 @@ void profileListSetup(){
 void toggleProfileSelection() {
   CurrentState.selectingProfile = !CurrentState.selectingProfile;
   CurrentState.currentPage = 0;
-  CurrentState.selectionCursor = 0;
+  
   if (CurrentState.selectingProfile) {
     profileListSetup();
 
@@ -517,6 +530,7 @@ void toggleProfileSelection() {
       loadProfile(BTProfiles[cursorPlaceGlobal]);
     }
   }
+  CurrentState.selectionCursor = 0;
   // check if a profile has been selected, if so then load
   return;
 }

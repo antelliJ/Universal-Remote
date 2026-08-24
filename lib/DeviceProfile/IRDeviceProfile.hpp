@@ -33,6 +33,7 @@ enum class IRProtocol {
     NEC,
     RAW,
     SONY,
+    RC5,
     UNKNOWN,
     SETTINGS
 };

@@ -1,6 +1,10 @@
 /*     Arduino Rotary Encoder Tutorial
 *      
 *  by Dejan Nedelkovski, www.HowToMechatronics.com
+
+
+sorry Dejan but I'm stealing from https://www.build-electronic-circuits.com/arduino-rotary-encoder/
+now
 *  
 */
 #include <Arduino.h>
@@ -10,13 +14,27 @@
 
 #define encoderBtn 3
 
-int counter = 0; 
+
+
+#define ENCODER_SCROLLUP 0x01
+#define ENCODER_SCROLLDOWN 0x02
+#define ENCODER_BTN 0x04
+
+
+// int encoderTicks = 0; 
+volatile int encoderTicks = 0;
 int aState;
-int aLastState;  
+// int aLastState;  
+volatile uint8_t lastEncoded = 0;
+volatile uint8_t encoderEvents = 0;
 
 void scrollUp();
 void scrollDown();
 void encoderButtonPressed();
+
+void updateEncoder();
+
+bool lastBtnState = HIGH;
 
 
 void encoderSetup(){ 
@@ -25,44 +43,96 @@ void encoderSetup(){
 
   pinMode(encoderBtn, INPUT_PULLUP);
   
-  // Serial.begin (9600);
-  // Reads the initial state of the outputA
-  aLastState = digitalRead(outputA);   
+  lastEncoded = (digitalRead(outputA) << 1) | digitalRead(outputB); // Reads the initial state of the outputA and outputB
+
+  attachInterrupt(
+    digitalPinToInterrupt(outputA),
+    updateEncoder,
+    CHANGE
+  );
+
+  attachInterrupt(
+    digitalPinToInterrupt(outputB),
+    updateEncoder,
+    CHANGE
+  );
 } 
 
-byte readEncoderSignal() { 
- byte data = 0;
-  aState = digitalRead(outputA); // Reads the "current" state of the outputA
-  // If the previous and the current state of the outputA are different, that means a Pulse has occured
-  if (aState != aLastState){     
-    // If the outputB state is different to the outputA state, that means the encoder is rotating clockwise
-    if (digitalRead(outputB) != aState) { 
-      counter ++;
-      // check if counter is multiple of 2
-      // if so then scroll up
-      // if (counter % 2 == 0){
-      //   scrollUp();
-      //   data |= 0x01; // 0b00000001
-      // }
-      scrollUp();
-      data |= 0x01; // 0b00000001
-    } else {
-      counter --;
-      // if (counter % 2 == 0){
-      scrollDown();
-      data |= 0x02;
-      // }
-    }
-    Serial.print("Position: ");
-    Serial.println(counter);
-  } 
-  aLastState = aState; // Updates the previous state of the outputA with the current state
 
-  if (digitalRead(encoderBtn) == LOW){
-    Serial.println("Encoder Button Pressed");
-    encoderButtonPressed();
-    data |= 0x04;
+
+void IRAM_ATTR updateEncoder(){
+
+  uint8_t MSB = digitalRead(outputA); // MSB = most significant bit
+  uint8_t LSB = digitalRead(outputB);
+
+  uint8_t encoded = (MSB << 1) | LSB; // convert to 1 num
+  uint8_t sum = (lastEncoded << 2) | encoded;
+
+  if ( // clockwise?
+    sum == 0b1101 ||
+    sum == 0b0100 ||
+    sum == 0b0010 ||
+    sum == 0b1011 
+  ) {
+    encoderTicks++;
+    // Serial.println("tick ++");
+    // encoderEvents |= ENCODER_SCROLLUP;
   }
+
+  if ( //ccw
+    sum == 0b1110 ||
+    sum == 0b0111 ||
+    sum == 0b0001 ||
+    sum == 0b1000
+  ) {
+    encoderTicks--;
+    // Serial.println("tick --");
+    // encoderEvents |= ENCODER_SCROLLDOWN;
+  }
+
+  lastEncoded = encoded;
+}
+
+byte readEncoderSignal() { 
+  byte data = 0;
+
+  int ticks;
+  
+  noInterrupts();
+
+  // data = encoderEvents;
+  // encoderEvents = 0;
+
+  ticks = encoderTicks;
+  if (encoderTicks >= TICKS_PER_SCROLL) {
+    encoderTicks -= TICKS_PER_SCROLL;
+    // data |= ENCODER_SCROLLUP;
+    ticks = TICKS_PER_SCROLL;
+  } else if (encoderTicks <= -TICKS_PER_SCROLL) {
+    encoderTicks += TICKS_PER_SCROLL;
+    ticks = -TICKS_PER_SCROLL;
+  } else {
+    ticks = 0;
+  }
+
+  interrupts();
+
+  if (ticks > 0) {
+    // scrollUp();
+    data |= ENCODER_SCROLLUP;
+    Serial.println("scrolling up");
+  }else if (ticks < 0) {
+    data |= ENCODER_SCROLLDOWN;
+    Serial.println("scrolling down");
+  }
+
+  bool curBtnState = digitalRead(encoderBtn);
+
+  if (lastBtnState == HIGH && curBtnState == LOW) {
+    data |= ENCODER_BTN;
+    encoderButtonPressed();
+  }
+  lastBtnState = curBtnState;
 
   return data;
 }
