@@ -84,8 +84,8 @@ void onScroll(bool up); // rotate buffer accordingly - cycle back to first page 
 void toggleProfileSelection();
 void conductCommandAction(command* cmd);
 void startIRDump();
-void startBLEDevice(); // check if object exists, create
-void disconnectBLEDevice();
+void enterBT(); // check if object exists, create
+void exitBT();
 void clearCmds();
 void clearProfileList();
 void loadProfileList(std::vector<DeviceProfile*> profiles, int page=0);
@@ -133,7 +133,15 @@ void setup() {
 
 
 
+void enterBT() {
+  Serial.println("starting BT");
+  setupBT();
+}
 
+void exitBT() {
+  Serial.println("exiting BT");
+  disconnectBT();
+}
 
 
 void checkSerialCmd(){
@@ -487,6 +495,14 @@ void loadProfileList(std::vector<DeviceProfile*> profiles, int page) {
 
 
 void loadProfile(DeviceProfile* newProfile) {
+  if (CurrentState.mode == transmissionModes::BT && newProfile->mode != transmissionModes::BT) {
+    disconnectBT();
+  }
+
+  if (CurrentState.mode != transmissionModes::BT && newProfile->mode == transmissionModes::BT) {
+    setupBT();
+  }
+
   CurrentState.currentProfile = newProfile;
   CurrentState.mode = CurrentState.currentProfile->mode;
   CurrentState.selectionCursor = 0;

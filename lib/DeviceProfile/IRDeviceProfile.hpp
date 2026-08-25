@@ -34,6 +34,7 @@ enum class IRProtocol {
     RAW,
     SONY,
     RC5,
+    SHARP,
     UNKNOWN,
     SETTINGS
 };

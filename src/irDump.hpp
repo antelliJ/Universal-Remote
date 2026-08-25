@@ -15,7 +15,7 @@ const uint16_t kRecvPin = 4;
 // As this program is a special purpose capture/decoder, let us use a larger
 // than normal buffer so we can handle Air Conditioner remote codes.
 const uint16_t kCaptureBufferSize = 1024;
-const uint8_t kTimeout = 15;
+const uint8_t kTimeout = 50; // 50ms probably better to receive IR from some devices
 
 // Set the smallest sized "UNKNOWN" message packets we actually care about.
 // This value helps reduce the false-positive detection rate of IR background

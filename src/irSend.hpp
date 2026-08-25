@@ -31,6 +31,8 @@ void sendRawSignal(const std::vector<uint16_t>& data, uint16_t hz=38) {
   delay(30);
 }
 
+// may use the encode{protocol} to include command and address, but data is the same
+
 void sendNECdata(uint64_t data) {
     // IRTransmitter->sendNEC(data);
     irsend.sendNEC(data);
@@ -44,6 +46,10 @@ void sendSONYdata(uint64_t data) {
 
 void sendRC5data(uint64_t data) {
     irsend.sendRC5(data);
+}
+
+void sendSharpdata(uint64_t data) {
+    irsend.sendSharpRaw(data);
 }
 
 
@@ -89,6 +95,10 @@ void handleIRCommand(IRProtocol protocol, IRCommand command){
             break;
         case IRProtocol::RC5:
             sendRC5data(std::get<uint64_t>(command.data));
+            Serial.println(std::get<uint64_t>(command.data));
+            break;
+        case IRProtocol::SHARP:
+            sendSharpdata(std::get<uint64_t>(command.data));
             Serial.println(std::get<uint64_t>(command.data));
             break;
         default: // unknown protocol

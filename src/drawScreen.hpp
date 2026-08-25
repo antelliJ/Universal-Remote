@@ -97,6 +97,8 @@ void updateScreen(state* currentState, bool drawSlow=false) {
     } else { // profile chosen, for command selection
         // name of profile at top center of screen
         String name = currentState->currentProfile->name;
+        // add (page / total pages)
+        name = name + " (" + String(currentState->currentPage+1) + "/" + String(currentState->lastPage+1) + ")";
         drawTitle(name);
         if (drawSlow){
             display.display();
