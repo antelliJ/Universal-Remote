@@ -4,15 +4,15 @@
 
 BleKeyboard bleKeyboard("Universal Remote");
 
-bool btStarted = false;
+bool bluetoothStarted  = false;
 
 
 void setupBT(){
-    if (btStarted) {
+    if (bluetoothStarted ) {
         Serial.println("BT already started");
         return;
     }
-    btStarted = true;
+    bluetoothStarted  = true;
 
     bleKeyboard.begin();
 }

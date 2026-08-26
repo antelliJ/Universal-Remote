@@ -106,8 +106,6 @@ void setup() {
   screenSetup();
   Serial.println("Screen initialized");
 
-  int bondCount = esp_ble_get_bond_device_num();
-
 
   encoderSetup();
   registerSetup(); // why was this not here before ??????????
