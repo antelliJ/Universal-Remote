@@ -53,34 +53,132 @@ Commands similarly are stored in the respective profiles and use the `command` b
 
 ### Schematic
 
+The rotary encoder, OLED display, IR transmitter and receiver are connected in the same way, as seen in the schematic   
+
 #### With Shift Register
+
+![Schematic showing connections from ESP32-C3 to the shift register and all other components](<assets/schematic v1-0.png>)
 
 The recommended configuration uses a PISO (parallel-in, serial-out) shift register to get more inputs than what the microcontroller supports.
 
-#### With Single Input
+The actual connection uses
+| Signal            |     | ESP32-C3 GPIO |
+| ------            | --- | ------------- |
+| Clock             |     | GPIO 5        |
+| (parallel) Load In|     | GPIO 6        |
+| Serial Out        |     | GPIO 7        |
 
+Button inputs are connected to the input pins of the shift register, where each pin should have a respective pullup / pulldown resistor (I intended on using a pulldown resistor)
+
+#### With Single Input
+![Schematic showing connections from ESP32-C3 to a single button on GPIO 7, with the same connections to all other components](<assets/schematic v1-1.png>)
+
+For testing or if you don't have a PISO shift register, the code allows for a single button input to be connected to GPIO 7 (and is pulled properly - I used the internal pullup resistors here. So my button is connected to GPIO 7 and GND)
+
+This option uses the rotary encoder to select the command while the single button actually executes that chosen command. I found this system of traversal to be much more clunky that the other option.
 
 ### Reading IR Signals
+The IRremoteESP8266 does the heavy lifting in reading IR signals from the receiver. 
 
+Protocols that the library recognizes can be easily stored with just a little addition in the project to make room. If it isn't recognized, raw timings can be used, where they are stored as a vector of `uint16_t` duration pulses of the IR light in microseconds
+
+
+<br>
+
+To be able to read what is received, first connect the board to the PC and open the serial monitor (at a baud rate of 115200)
+
+Enter the IR dump / read mode by entering the settings in the IR profiles list, and executing the "IR Dump" command
+
+Whatever signals are received will be printed in a human readable signal hex code (if the protocol is recognized), otherwise a list of the timings is printed
 
 ### Adding IR Protocols 
+These can then be stored as an IRCommand as follows (Perhaps in IRProfilesList.hpp)
+```
+//example for raw timings:
+{
+    "power",
+    std::vector<uint16_t>{
+        232, 1860,  228, 806,  184, 854,  
+        180, 854,  180, 882,  136, 900,
+        ...
+    }
+}
 
+//example for recognized protocol
+{"vol up", 0x40A2}
+```
+
+These commands that contain the data can be used in the definitions for the profiles
+
+```
+new IrDeviceProfile(
+    "tv",
+    IRProtocol::SHARP, // ::RAW, ::NEC, etc. 
+    {
+        ... // commands go here
+    }
+)
+
+```
 
 ### Creating bluetooth commands
 
+These commands are represented with `BTCommand`. Commands may contain a single key or a collection of multiple keys. There is an argument if there are multiple keys whether they should be pressed consecutively or simultaneously.
+
+Special media keys can also be used
+
+```
+
+    new BTDeviceProfile(
+        "shortcuts",
+        std::vector<BTCommand>{
+            {"new tab", std::vector<uint8_t>{K_L_CTRL, (uint8_t)'t'}, true}, // true is optional since its the default, setting whether keypress is synced
+            {"a", (uint8_t)'a'},
+            {"vol up", MEDIAKEY_VOLUME_UP}, // KEY_MEDIA_VOLUME_UP
+        }
+    ),
+```
+
+
 ### Utilizing a Shift Register (Recommended)
-This project works with a PISO shift register (74HS165) connected to GPIO pins 5,6, and 7, as seen in the schematic.
+This project works with a PISO shift register (74HS165 - I got it working with a 74LS165) connected to GPIO pins 5,6, and 7, as seen in the schematic.
 
 Enable this feature in the compiler flags, or through the `config.hpp` file (set USE_SHIFT_REG to 1)
+    `#define USE_SHIFT_REG 1`
+
+Ensure the pinout is correct as per `readEncoder.hpp` (Written in the schematic section)
+
+The state of the button is returned as a byte, where the rest of the program can process what these states mean
 
 
-### Using a single button for input
+### Using a single button for input (Simpler wiring)
 but if unavailable the rotary encoder and a single button connected to GPIO 7 (and an internal pullup resistor) is able to be used
 
-Disable the shift register functionality in the compiler flags, or through the `config.hpp` file (set USE_SHIFT_REG to 0)
+Disable the shift register functionality in the compiler flags, or through the `config.hpp` file (set USE_SHIFT_REG to 0) 
+    `#define USE_SHIFT_REG 0`
+
+the input is then configured as `pinMode(7, INPUT_PULLUP);`, as the button is connected to GPIO 7 and GND. This means the button is active when LOW.
+
+The rotary encoder selects the active command, and the button executes the active command, and is more cumbersome to use than with the shift register.
 
 ### Serial API
 
+Tools are available for debugging and injecting certain command data and simulated inputs
+
+Communication is at <b>115200 baud</b>
+
 #### Simulated Button Presses
+| Command               |     | Simulated Action                  |
+| ------                | --- | -------------                     |
+| scrollup              |     | Rotary Encoder Scroll up          |
+| scrolldown            |     | Rotary Encoder Scroll down        |
+| toggle                |     | Rotary Encoder Scroll button press|
+| btn{0-7} -> ex. btn5  |     | Shift Register Button Press       |
+
 
 #### Debug Prints
+| Command               |     | Output                            |
+| ------                | --- | -------------                     |
+| CurrentState          |     | Prints the values of the CurrentState Variable, used throughout the program           |
+
+The project also outputs some information at startup and throughout operation for how processes are going, such as what IR messages are being transmitted, the amount of commands loaded, etc.
