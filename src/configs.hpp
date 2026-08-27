@@ -3,6 +3,8 @@
 
 // whether or not to use a shift register for input, otherwise single input on the data pin
 // #define USE_SHIFT_REG 1
+
+
 #ifndef USE_SHIFT_REG
     #define USE_SHIFT_REG 0
 #endif

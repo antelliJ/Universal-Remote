@@ -3,7 +3,17 @@ https://github.com/antelliJ/Universal-Remote
 
 A project aimed at replicating IR signals for media communication and the ability to act as a bluetooth keyboard, with extensible elements available.
 
-This project is built with an ESP32-C3
+This project is built with an ESP32-C3 as the main 
+
+![Hero shot of remote in crappy wooden shell](<assets/CrappyRemoteBuild.png>)
+
+
+[![Watch the video](https://youtu.be/pHv06WnozZE)](https://youtu.be/pHv06WnozZE)
+
+
+
+esptool.py --chip esp32 merge-bin -o merged-flash.bin --flash_mode dio 0x1000 "C:\Users\josev\OneDrive\Documents\PlatformIO\Projects\Universal-Remote\.pio\build\esp32-c3-shiftreg\bootloader.bin" 0x8000 "C:\Users\josev\OneDrive\Documents\PlatformIO\Projects\Universal-Remote\.pio\build\esp32-c3-shiftreg\partitions.bin" 0x10000 "C:\Users\josev\OneDrive\Documents\PlatformIO\Projects\Universal-Remote\.pio\build\esp32-c3-shiftreg\firmware.bin"
+
 
 <strong> Libraries used: </strong>
 - [IRremoteESP8266] (https://github.com/crankyoldgit/irremoteesp8266 "Github Project")
@@ -19,7 +29,7 @@ This project is built with an ESP32-C3
     -   Compatible with major operating systems
 - [x] OLED screen to view available profiles and commands
 - [x] Rotary encoder for selection and navigation
-- [x] Optional Shift register (74HS165) for multiple button input (most efficient)
+- [x] Optional Shift register (74HC165) for multiple button input (most efficient)
 - [x] Single button input for testing or if register is unavailable
 - [x] Serial interface for testing
 - [x] Extensible nature of devices profiles and other communication
@@ -51,9 +61,11 @@ More may be added later (a more robust Settings profile, secret options, etc.)
 
 Commands similarly are stored in the respective profiles and use the `command` base class
 
+On startup the display says hello world before loading the first profile.
+
 ### Schematic
 
-The rotary encoder, OLED display, IR transmitter and receiver are connected in the same way, as seen in the schematic   
+The rotary encoder, OLED display, IR transmitter and receiver are connected in the same way, whether or not a shift register is used, and the wiring is as seen in the schematic.
 
 #### With Shift Register
 
@@ -141,7 +153,7 @@ Special media keys can also be used
 
 
 ### Utilizing a Shift Register (Recommended)
-This project works with a PISO shift register (74HS165 - I got it working with a 74LS165) connected to GPIO pins 5,6, and 7, as seen in the schematic.
+This project works with a PISO shift register (74HC165 - I got it working with a 74LS165) connected to GPIO pins 5,6, and 7, as seen in the schematic.
 
 Enable this feature in the compiler flags, or through the `config.hpp` file (set USE_SHIFT_REG to 1)
     `#define USE_SHIFT_REG 1`
@@ -182,3 +194,67 @@ Communication is at <b>115200 baud</b>
 | CurrentState          |     | Prints the values of the CurrentState Variable, used throughout the program           |
 
 The project also outputs some information at startup and throughout operation for how processes are going, such as what IR messages are being transmitted, the amount of commands loaded, etc.
+
+
+### Flashing Precompiled firmware
+Precompiled firmware is available in the
+[GitHub Releases](https://github.com/antelliJ/Universal-Remote/releases).
+
+There are 2 configs provided:
+| Firmware               |     | Input Method                  |
+| ------                | --- | -------------                     |
+| UniversalRemote-shiftreg-merged.bin              |     | 74HC165/74LS165 shift register          |
+| UniversalRemote-single-merged.bin              |     | Single Button Input on GPIO 7          |
+
+### Flashing with esp tool
+Download the desired `.bin` file release
+Connect your ESP32-C3 to your computer with USB
+Put the microcontroller into uploading mode (if necessary)
+
+Install and use `esptool`: (replace COMx with the COM serial port of your ESP32-C3)
+
+```bash
+pip install esptool
+
+esptool --chip esp32c3 --port COMx erase_flash
+
+esptool --chip esp32c3 --port COMx write_flash 0x0 UniversalRemote-shift-register.bin
+
+OR FOR THE SINGLE BUTTON
+
+esptool --chip esp32c3 --port COMx write_flash 0x0 UniversalRemote-single-button.bin
+```
+
+
+### Instructions with building if using PlatformIO
+Clone the repository
+
+Build the project with either of the respective environments:
+
+```
+pio run -e esp32-c3-shiftreg
+
+pio run -e esp32-c3-singlebtn
+```
+
+</br></br>
+If you want to build and upload in one command:
+```
+pio run -e esp32-c3-shiftreg -t upload
+
+pio run -e esp32-c3-singlebtn -t upload
+```
+
+
+#### To make the merged files yourself:
+Clone the repository
+
+Build the files for the respective platform you're using with platformio
+
+replace esp32-c3-singlebtn in the following command with esp32-c3-shiftreg
+if necessary
+
+
+`pio pkg exec -p tool-esptoolpy -- esptool.py --chip esp32c3 merge_bin -o merged.bin --flash_mode dio --flash_freq 80m --flash_size 4MB 0x0 .pio/build/esp32-c3-singlebtn/bootloader.bin 0x8000 .pio/build/esp32-c3-singlebtn/partitions.bin 0x10000 .pio/build/esp32-c3-singlebtn/firmware.bin`
+
+^ This command was generated by chatGPT, but it did produce a file without errors so it seems to work?
