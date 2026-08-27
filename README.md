@@ -3,7 +3,7 @@ https://github.com/antelliJ/Universal-Remote
 
 A project aimed at replicating IR signals for media communication and the ability to act as a bluetooth keyboard, with extensible elements available.
 
-This project is built with an ESP32-C3 as the main 
+This project is built with an ESP32-C3 as the main heart and brains of the system
 
 ![Hero shot of remote in crappy wooden shell](<assets/CrappyRemoteBuild.png>)
 
