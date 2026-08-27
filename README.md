@@ -12,9 +12,6 @@ This project is built with an ESP32-C3 as the main heart and brains of the syste
 
 
 
-esptool.py --chip esp32 merge-bin -o merged-flash.bin --flash_mode dio 0x1000 "C:\Users\josev\OneDrive\Documents\PlatformIO\Projects\Universal-Remote\.pio\build\esp32-c3-shiftreg\bootloader.bin" 0x8000 "C:\Users\josev\OneDrive\Documents\PlatformIO\Projects\Universal-Remote\.pio\build\esp32-c3-shiftreg\partitions.bin" 0x10000 "C:\Users\josev\OneDrive\Documents\PlatformIO\Projects\Universal-Remote\.pio\build\esp32-c3-shiftreg\firmware.bin"
-
-
 <strong> Libraries used: </strong>
 - [IRremoteESP8266] (https://github.com/crankyoldgit/irremoteesp8266 "Github Project")
 - [Adafruit SSD1306] (https://github.com/adafruit/adafruit_ssd1306) & [Adafruit GFX Library] (https://github.com/adafruit/Adafruit-GFX-Library)
