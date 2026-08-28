@@ -60,6 +60,7 @@ std::vector<DeviceProfile*> BTProfiles = {
         std::vector<BTCommand>{
             {"new tab", std::vector<uint8_t>{K_L_CTRL, (uint8_t)'t'}},
             {"a", (uint8_t)'a'},
+            {"abc", std::vector<uint8_t>{(uint8_t)'a', (uint8_t)'b', (uint8_t)'c'}, false},
         }
     ),
 

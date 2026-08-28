@@ -14,6 +14,7 @@ void setupBT(){
     }
     bluetoothStarted  = true;
 
+    bleKeyboard.end();
     bleKeyboard.begin();
 }
 
@@ -22,7 +23,17 @@ void disconnectBT(){
 }
 
 void send_bt_key(uint8_t key){
-    bleKeyboard.write(key);
+    Serial.print("Sending keyboard key: 0x");
+    Serial.println(key, HEX);
+
+    Serial.print("Connected: ");
+    Serial.println(bleKeyboard.isConnected());
+
+    // bleKeyboard.write(key);
+    size_t result = bleKeyboard.write(key);
+
+    Serial.print("write() returned: ");
+    Serial.println(result);
 }
 
 // I should keep it as const since they're not being updated
@@ -38,6 +49,7 @@ void send_bt_keys_simultaneously(const std::vector<uint8_t>& keys){
     for (int i = 0; i < keys.size(); i++){
         bleKeyboard.press(keys[i]);
     }
+    // delay(50);
     bleKeyboard.releaseAll();
 }
 

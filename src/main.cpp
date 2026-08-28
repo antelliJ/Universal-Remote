@@ -88,7 +88,7 @@ void enterBT(); // check if object exists, create
 void exitBT();
 void clearCmds();
 void clearProfileList();
-void loadProfileList(std::vector<DeviceProfile*> profiles, int page=0);
+void loadProfileList(const std::vector<DeviceProfile*>& profiles, int page=0);
 void reloadProfileList();
 void profileListSetup();
 void printByte(byte byteVar) {
@@ -396,6 +396,7 @@ void onScroll(bool up) {
   if (CurrentState.selectingProfile) { // scrolling profiles
 
     updateScrollingOnPage(up, reloadProfileList);
+    // Serial.print(CurrentState.lastPage);
 
   } else { // scrolling commands
 
@@ -480,16 +481,57 @@ void clearProfileList(){
   }
 }
 
-void loadProfileList(std::vector<DeviceProfile*> profiles, int page) {
-  // load into availableProfiles
-  Serial.print("profile count: ");
-  Serial.print(profiles.size());
+// void loadProfileList(std::vector<DeviceProfile*> profiles, int page) {
+//   // load into availableProfiles
+//   Serial.print("profile count: ");
+//   Serial.print(profiles.size());
   
-  for (int i = (page*4); i < (profileAmtOnPage(page)+(page*4)); i++) {
-    CurrentState.availableProfiles[i] = profiles[i];
-  }
-}
+//   for (int i = (page*4); i < (profileAmtOnPage(page)+(page*4)); i++) {
+//     CurrentState.availableProfiles[i] = profiles[i];
+//   }
+// }
 
+// void loadProfileList(const std::vector<DeviceProfile*>& profiles, int page) {
+
+//     Serial.print("profile count: ");
+//     Serial.println(profiles.size());
+
+//     int start = page * 4;
+//     int count = profileAmtOnPage(page);
+
+//     for (int i = 0; i < 4; i++) {
+
+//         if (i < count) {
+//             CurrentState.availableProfiles[i] = profiles[start + i];
+
+//             Serial.print("Loaded profile ");
+//             Serial.println(start + i);
+//         } 
+//         else {
+//             CurrentState.availableProfiles[i] = nullptr;
+//         }
+//     }
+// }
+void loadProfileList(
+    const std::vector<DeviceProfile*>& profiles,
+    int page
+) {
+    for (int i = 0; i < 4; i++) {
+
+        int index = page * 4 + i;
+
+        if (index < profiles.size()) {
+            CurrentState.availableProfiles[i] = profiles[index];
+
+            Serial.print("Loaded profile in list: ");
+            Serial.print(index);
+            Serial.print(", ");
+            Serial.println(profiles[index]->name);
+        } else {
+            CurrentState.availableProfiles[i] = nullptr;
+        }
+    }
+}
 
 
 void loadProfile(DeviceProfile* newProfile) {
@@ -500,6 +542,9 @@ void loadProfile(DeviceProfile* newProfile) {
   if (CurrentState.mode != transmissionModes::BT && newProfile->mode == transmissionModes::BT) {
     setupBT();
   }
+
+  Serial.print("Loading profile ");
+  Serial.println(newProfile->name);
 
   CurrentState.currentProfile = newProfile;
   CurrentState.mode = CurrentState.currentProfile->mode;
@@ -515,6 +560,7 @@ void loadProfile(DeviceProfile* newProfile) {
 }
 
 
+
 void profileListSetup(){
   CurrentState.selectionCursor = 0;
   CurrentState.currentPage = 0;
@@ -526,11 +572,10 @@ void profileListSetup(){
 // switch state of selecting profile, // check if a profile has been selected, if so then load
 void toggleProfileSelection() {
   CurrentState.selectingProfile = !CurrentState.selectingProfile;
-  CurrentState.currentPage = 0;
   
   if (CurrentState.selectingProfile) {
     profileListSetup();
-
+    
   } else {
     clearProfileList();
     // load profile of active element
@@ -544,6 +589,7 @@ void toggleProfileSelection() {
       loadProfile(BTProfiles[cursorPlaceGlobal]);
     }
   }
+  CurrentState.currentPage = 0;
   CurrentState.selectionCursor = 0;
   // check if a profile has been selected, if so then load
   return;
