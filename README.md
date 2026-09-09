@@ -5,7 +5,7 @@ A project aimed at replicating IR signals for media communication and the abilit
 
 This project is built with an ESP32-C3 as the main heart and brains of the system
 
-![Hero shot of remote in crappy wooden shell](<assets/CrappyRemoteBuild.png>)
+![Hero shot of remote in crappy wooden shell](<assets/BetterRemoteBuild.png>)
 
 
 [![Watch the video of all features](https://youtu.be/WP4MpGtz5AQ)](https://youtu.be/WP4MpGtz5AQ)
