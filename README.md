@@ -293,5 +293,8 @@ This creates a merged.bin file that can be used to upload to the microcontroller
 | U5    | 1   | IR Receiver. TSOP38238                        |
 | U6    | 1   | PISO shift register. 74HC165                  |
 
-solder and wires not included
-A similar file is included in the `resources/BOM` directory. Most items in the CSV are the bulk versions, so it would be more expensive than an individual version
+*solder and wires not included. 
+
+
+A similar file is included in the `resources/BOM` directory. 
+Most items in the CSV are the bulk versions, so it would be more expensive than the individual components.
