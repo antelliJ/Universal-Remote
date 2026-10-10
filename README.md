@@ -52,6 +52,7 @@ Potential features for the future:
 a 3d model of the enclosure as a `.step` file is saved in the `/resources/CAD` directory. A pcb was not used in the design of this, so it is not included unfortunately.
 The front and back are separated, and can be joined in whatever fashion you please. Personally I connected it with screws.
 
+![View of the CAD model provided](<assets/CadModel.png>)
 
 ## Usage
 The remote is built around <b>device profiles</b>. These group commands of a device into a single folder of sorts. This can be a profile for a TV, for lights, and AC unit, and would have all the commands that can be sent to it.
