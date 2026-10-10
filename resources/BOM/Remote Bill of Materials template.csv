@@ -1,0 +1,21 @@
+Item Name,Qty,Price (total) (USD),Item link,Notes
+5mm 940nm Emitter,1,$3.01,https://www.aliexpress.com/item/1005003330154455.html,IR emitter
+TSOP38238,1,$0.00,^,IR Receiver. Comes with emitter in kit
+S8050 ,1,$4.49,https://www.aliexpress.com/item/1005012741786182.html,NPN transistor
+10 kΩ resistor,8,$2.71,https://www.aliexpress.com/item/1005006179281226.html,for each button
+PBS-33B,8,$5.47,https://www.aliexpress.com/item/1005008498887267.html,"Momentary push button, normally open"
+1 kΩ resistor,1,$0.00,https://www.aliexpress.com/item/1005006179281226.html,Same source as the other
+EC11 5 pin,1,$0.67,https://www.aliexpress.com/item/1005001877184897.html,Rotary Encoder + Switch
+ESP32 S3 Supermini,1,$3.55,https://www.aliexpress.com/item/1005005757810089.html,The brains
+SSD1306,1,$2.71,https://www.aliexpress.com/item/1005006141235306.html,"0.96"" I²C OLED display"
+74HC165,1,$2.69,https://www.aliexpress.com/item/1005003495090470.html,PISO shift register
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+Total Price (USD):,$25.30,,,

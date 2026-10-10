@@ -47,9 +47,9 @@ Potential features for the future:
     - If implemented could potentially update order and inclusion of new commands wirelessly
  
 
-### 3d Model
+### CAD Model
 
-a 3d model of the enclosure as a `.step` file is saved in the `/3d-Model` directory. A pcb was not used in the design of this, so it is not included unfortunately.
+a 3d model of the enclosure as a `.step` file is saved in the `/resources/CAD` directory. A pcb was not used in the design of this, so it is not included unfortunately.
 The front and back are separated, and can be joined in whatever fashion you please. Personally I connected it with screws.
 
 
@@ -288,7 +288,9 @@ This creates a merged.bin file that can be used to upload to the microcontroller
 | R9    | 1   | 1 kΩ resistor                                 |
 | SW9   | 1   | Rotary Encoder + Switch. EC11 5 pin           |
 | U1    | 1   | ESP32 S3 Supermini                            |
-| U4    | 1   | 0.96″ I²C OLED display. SSD1306               |
+| U4    | 1   | 0.96" I²C OLED display. SSD1306               |
 | U5    | 1   | IR Receiver. TSOP38238                        |
 | U6    | 1   | PISO shift register. 74HC165                  |
 
+solder and wires not included
+A similar file is included in the `resources/BOM` directory. Most items in the CSV are the bulk versions, so it would be more expensive than an individual version
